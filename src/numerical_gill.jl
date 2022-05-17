@@ -243,7 +243,7 @@ function construct(Lx,Ly,Δx,Δy,N,Δt,input_Q=1,u0v=0, v0v=0, p0v=0)
 end
 
 
-function saver(name::String,u,v,p,xs,ys,f; ϵ_u=0.1, ϵ_v=0.1, ϵ_p=0.1, res=0.5,print_info=true)
+function saver(name::String,u,v,p,xs,ys,f; ϵ_u=0.1, ϵ_v=0.1, ϵ_p=0.1, res=0.5,print_info=true,add_attributes=Dict())
     # use dr watson savename
     epsilon_u, epsilon_v, epsilon_p = ϵ_u, ϵ_v, ϵ_p
     params = @strdict f epsilon_u epsilon_v epsilon_p res
@@ -254,13 +254,25 @@ function saver(name::String,u,v,p,xs,ys,f; ϵ_u=0.1, ϵ_v=0.1, ϵ_p=0.1, res=0.5
         print("Saving simulation as $filename")
     end
     run(`rm -f $filename`)
+
+    standard_attributes = Dict(
+    "epsilon_u"   => epsilon_u,
+    "epsilon_v"   => epsilon_v,
+    "epsilon_p"   => epsilon_p,
+    "f" => f
+    )
+
+    attributes = merge(standard_attributes, add_attributes)
+
     nccreate(filename, "u", "x", xs, "y", ys)
     nccreate(filename, "v", "x", xs, "y", ys)
-    nccreate(filename, "p", "x", xs, "y", ys)
+    nccreate(filename, "p", "x", xs, "y", ys, atts=attributes)
 
     NetCDF.ncwrite(u, filename, "u")
     NetCDF.ncwrite(v, filename, "v")
     NetCDF.ncwrite(p, filename, "p")
+
+    ncclose(filename)
 end
 
 function force_balance_gill(con::Constructor,u::Array,v::Array,p::Array,ϵ_u::AbstractFloat, ϵ_v::AbstractFloat, ϵ_p::AbstractFloat)
