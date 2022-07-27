@@ -7,11 +7,11 @@ function gill!(dx::Array, x::Array, constants)
     v=view(x,2,:,:)
     p=view(x,3,:,:)
     x_dim, y_dim, Δt, Δx, Δy, ys, Q, ϵ_u, ϵ_v, ϵ_p  = constants
-    @turbo for j in 2:y_dim-1 # be carefull with @inbounds, if the array index is out of bounds, then you wont get the correct error message!
+    @turbo for j in 2:y_dim-1
         for i in 2:x_dim-1
             dx[1,i,j] = - ϵ_u * u[i,j] + 1/2 * ys[j] * v[i,j] - (p[i+1,j]-p[i-1,j])/2Δx
             dx[2,i,j] = - ϵ_v * v[i,j] - 1/2 * ys[j] * u[i,j] - (p[i,j+1]-p[i,j-1])/2Δy
-            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy - Q[i,j]
+            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy + Q[i,j]
         end
     end
 end
