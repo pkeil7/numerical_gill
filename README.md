@@ -8,8 +8,8 @@ It is authored by Paul Keil.
 
 To (locally) reproduce this project, do the following:
 
-0. Download this code base. Notice that raw data are typically not included in the
-   git-history and may need to be downloaded independently.
+0. Download this code base.
+
 1. Open a Julia console and do:
    ```
    julia> using Pkg
@@ -17,5 +17,5 @@ To (locally) reproduce this project, do the following:
    julia> Pkg.instantiate()
    ```
 
-This will install all necessary packages for you to be able to run the scripts and
-everything should work out of the box.
+This will install all necessary packages for you to be able to run the showcase notebook.
+You can also feed the model with real data to use as forcing.

@@ -219,7 +219,7 @@ function construct(Lx,Ly,Δx,Δy,N,Δt,input_Q=1,u0v=0, v0v=0, p0v=0)
     p0 = zeros(x_dim,y_dim) + ones(x_dim,y_dim) * p0v
     # ---
 
-    # input_Q can be 1 or 2 for idealised cases or a custom array, which should be 2 indices smaller in each dimension
+    # input_Q can be 1,2,3,4 for idealised cases or a custom array, which should be 2 indices smaller in each dimension
 
     if input_Q == 1
         Q = transpose(Q1.(Xs,Ys))
