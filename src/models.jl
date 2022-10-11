@@ -27,11 +27,12 @@ function WTG!(dx::Array, x::Array, constants)
         for j in 2:y_dim-1
             dx[1,i,j] = - ϵ_u * u[i,j] + 1/2 * ys[j] * v[i,j] - (p[i+1,j]-p[i-1,j])/2Δx
             dx[2,i,j] = - ϵ_v * v[i,j] - 1/2 * ys[j] * u[i,j] - (p[i,j+1]-p[i,j-1])/2Δy
-            dx[3,i,j] = - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy - Q[i,j]
+            dx[3,i,j] = - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy + Q[i,j]
         end
     end
 
 end
+
 
 function tuyl!(dx::Array,x::Array, constants)
     # Advection is prone to be numerically unstable.
@@ -47,7 +48,7 @@ function tuyl!(dx::Array,x::Array, constants)
         for j in 2:y_dim-1
             dx[1,i,j] = - ϵ_u * u[i,j] + ys[j] * v[i,j] - (p[i+1,j]-p[i-1,j])/2Δx - Ro * (u[i,j] * (u[i+1,j]-u[i-1,j])/2Δx + v[i,j] * (u[i,j+1]-u[i,j-1])/2Δy )
             dx[2,i,j] = - ϵ_v * v[i,j] - ys[j] * u[i,j] - (p[i,j+1]-p[i,j-1])/2Δy - Ro * (u[i,j] * (v[i+1,j]-v[i-1,j])/2Δx + v[i,j] * (v[i,j+1]-v[i,j-1])/2Δy )
-            dx[3,i,j] = - ϵ_p * p[i,j] - 1/(kappa) * ( (u[i+1,j]-u[i-1,j])/2Δx + (v[i,j+1]-v[i,j-1])/2Δy ) - Ro * ( (u[i+1,j] * p[i+1,j] - u[i-1,j] * p[i-1,j])/2Δx + (v[i,j+1] * p[i,j+1] - v[i,j-1] * p[i,j-1])/2Δy ) - Q[i,j]
+            dx[3,i,j] = - ϵ_p * p[i,j] - 1/(kappa) * ( (u[i+1,j]-u[i-1,j])/2Δx + (v[i,j+1]-v[i,j-1])/2Δy ) - Ro * ( (u[i+1,j] * p[i+1,j] - u[i-1,j] * p[i-1,j])/2Δx + (v[i,j+1] * p[i,j+1] - v[i,j-1] * p[i,j-1])/2Δy ) + Q[i,j]
         end
     end
 
@@ -70,7 +71,7 @@ function tuyl_diff!(dx::Array,x::Array, constants)
         for j in 2:y_dim-1
             dx[1,i,j] = - ϵ_u * u[i,j] + ys[j] * v[i,j] - (p[i+1,j]-p[i-1,j])/2Δx - Ro * (u[i,j] * (u[i+1,j]-u[i-1,j])/2Δx + v[i,j] * (u[i,j+1]-u[i,j-1])/2Δy ) + diff_c * ((u[i+1,j]-2*u[i,j]+u[i-1,j]) + (u[i,j+1]-2*u[i,j]+u[i,j-1]))
             dx[2,i,j] = - ϵ_v * v[i,j] - ys[j] * u[i,j] - (p[i,j+1]-p[i,j-1])/2Δy - Ro * (u[i,j] * (v[i+1,j]-v[i-1,j])/2Δx + v[i,j] * (v[i,j+1]-v[i,j-1])/2Δy ) + diff_c * ((v[i+1,j]-2*v[i,j]+v[i-1,j]) + (v[i,j+1]-2*v[i,j]+v[i,j-1]))
-            dx[3,i,j] = - ϵ_p * p[i,j] - 1/(kappa) * ( (u[i+1,j]-u[i-1,j])/2Δx + (v[i,j+1]-v[i,j-1])/2Δy ) - Ro * ( (u[i+1,j] * p[i+1,j] - u[i-1,j] * p[i-1,j])/2Δx + (v[i,j+1] * p[i,j+1] - v[i,j-1] * p[i,j-1])/2Δy ) - Q[i,j] + diff_c * ((p[i+1,j] - 2*p[i,j] + p[i-1,j]) + (p[i,j+1] - 2*p[i,j] + p[i,j-1]))
+            dx[3,i,j] = - ϵ_p * p[i,j] - 1/(kappa) * ( (u[i+1,j]-u[i-1,j])/2Δx + (v[i,j+1]-v[i,j-1])/2Δy ) - Ro * ( (u[i+1,j] * p[i+1,j] - u[i-1,j] * p[i-1,j])/2Δx + (v[i,j+1] * p[i,j+1] - v[i,j-1] * p[i,j-1])/2Δy ) + Q[i,j] + diff_c * ((p[i+1,j] - 2*p[i,j] + p[i-1,j]) + (p[i,j+1] - 2*p[i,j] + p[i,j-1]))
         end
     end
 
@@ -86,7 +87,7 @@ function gill_diff!(dx::Array, x::Array, constants)
         for i in 2:x_dim-1
             dx[1,i,j] = - ϵ_u * u[i,j] + 1/2 * ys[j] * v[i,j] - (p[i+1,j]-p[i-1,j])/2Δx + diff_c * ((u[i+1,j]-2*u[i,j]+u[i-1,j]) + (u[i,j+1]-2*u[i,j]+u[i,j-1]))
             dx[2,i,j] = - ϵ_v * v[i,j] - 1/2 * ys[j] * u[i,j] - (p[i,j+1]-p[i,j-1])/2Δy + diff_c * ((v[i+1,j]-2*v[i,j]+v[i-1,j]) + (v[i,j+1]-2*v[i,j]+v[i,j-1]))
-            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy - Q[i,j] + diff_c * ((p[i+1,j] - 2*p[i,j] + p[i-1,j]) + (p[i,j+1] - 2*p[i,j] + p[i,j-1]))
+            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy + Q[i,j] + diff_c * ((p[i+1,j] - 2*p[i,j] + p[i-1,j]) + (p[i,j+1] - 2*p[i,j] + p[i,j-1]))
         end
     end
 end
@@ -97,13 +98,13 @@ function gill_EMF!(dx::Array, x::Array, constants)
     v=view(x,2,:,:)
     p=view(x,3,:,:)
     x_dim, y_dim, Δt, Δx, Δy, ys, Q, ϵ_u, ϵ_v, ϵ_p  = constants
-    vd = 0.05 #EMF parameter. unstable for 0.05, stable for 0.01
+    vd = 0.01 #EMF parameter. unstable for 0.05, stable for 0.01
     diff_c = 0.05
     @turbo for j in 2:y_dim-1
         for i in 2:x_dim-1
             dx[1,i,j] = - ϵ_u * u[i,j] + 1/2 * ys[j] * v[i,j] - (p[i+1,j]-p[i-1,j])/2Δx - vd * heaviside(u[i,j]) * sign(ys[j]) * (u[i,j+1]-u[i,j-1])/2Δy + diff_c * ((u[i+1,j]-2*u[i,j]+u[i-1,j]) + (u[i,j+1]-2*u[i,j]+u[i,j-1]))
             dx[2,i,j] = - ϵ_v * v[i,j] - 1/2 * ys[j] * u[i,j] - (p[i,j+1]-p[i,j-1])/2Δy + diff_c * ((v[i+1,j]-2*v[i,j]+v[i-1,j]) + (v[i,j+1]-2*v[i,j]+v[i,j-1]))
-            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy - Q[i,j] + diff_c * ((p[i+1,j] - 2*p[i,j] + p[i-1,j]) + (p[i,j+1] - 2*p[i,j] + p[i,j-1]))
+            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i-1,j])/2Δx - (v[i,j+1]-v[i,j-1])/2Δy + Q[i,j] + diff_c * ((p[i+1,j] - 2*p[i,j] + p[i-1,j]) + (p[i,j+1] - 2*p[i,j] + p[i,j-1]))
         end
     end
 end
