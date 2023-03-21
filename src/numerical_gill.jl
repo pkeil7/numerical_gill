@@ -189,6 +189,31 @@ function cyclical_lon_BC(x::Array,con::Constructor)
     return x
 end
 
+function cyclical_lon_BC_2(x::Array,con::Constructor)
+    # This is cyclical in x direction, and zero gradient in y direction
+
+    # x direction
+    x[:,2,:] = view(x,:,con.x_dim-2,:)
+    x[:,1,:] = view(x,:,con.x_dim-3,:)
+
+    x[:,con.x_dim,:] = view(x,:,4,:)
+    x[:,con.x_dim-1,:] = view(x,:,3,:)
+
+    # y direction
+    # y_BC_damp determines the damping in y direction at the edges.
+    # y_BC_damp = 1, no damping, variables assumed to be constant accros y- Boundary
+    # y_BC_damp = 0, maximum damping, var goes straght to zero at boundary. This often causes some artificial waves close to boundaries!
+
+    y_BC_damp=1
+    x[:,:,1] .= y_BC_damp .* view(x,:,:,3)
+    x[:,:,2] .= y_BC_damp .* view(x,:,:,3)
+
+    x[:,:,con.y_dim] .= y_BC_damp .* view(x,:,:,con.y_dim-2)
+    x[:,:,con.y_dim-1] .= y_BC_damp .* view(x,:,:,con.y_dim-2)
+
+    return x
+end
+
 function zero_gradient_BC(x::Array,con::Constructor)
     # Boundary condition function
     # zero gradient in x and y direction

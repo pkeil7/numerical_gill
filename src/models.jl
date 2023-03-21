@@ -16,6 +16,40 @@ function gill!(dx::Array, x::Array, constants)
     end
 end
 
+function gill_EF!(dx::Array, x::Array, constants)
+    # euler forward in space
+    u=view(x,1,:,:)
+    v=view(x,2,:,:)
+    p=view(x,3,:,:)
+    x_dim, y_dim, Δt, Δx, Δy, ys, Q, ϵ_u, ϵ_v, ϵ_p  = constants
+    @turbo for j in 2:y_dim-1
+        for i in 2:x_dim-1
+            dx[1,i,j] = - ϵ_u * u[i,j] + 1/2 * ys[j] * v[i,j] - (p[i+1,j]-p[i,j])/Δx
+            dx[2,i,j] = - ϵ_v * v[i,j] - 1/2 * ys[j] * u[i,j] - (p[i,j+1]-p[i,j])/Δy
+            dx[3,i,j] = - ϵ_p * p[i,j] - (u[i+1,j]-u[i,j])/Δx - (v[i,j+1]-v[i,j])/Δy + Q[i,j]
+        end
+    end
+end
+
+function DCD(f,delta)
+    return (-f[5]+8*f[4]-8*f[2]+f[1])/(12*delta)
+end
+
+function gill_DCD!(dx::Array, x::Array, constants)
+    # double central differences in space
+    # https://en.wikipedia.org/wiki/Five-point_stencil
+    u=view(x,1,:,:)
+    v=view(x,2,:,:)
+    p=view(x,3,:,:)
+    x_dim, y_dim, Δt, Δx, Δy, ys, Q, ϵ_u, ϵ_v, ϵ_p  = constants
+    for j in 3:y_dim-2
+        for i in 3:x_dim-2
+            dx[1,i,j] = - ϵ_u * u[i,j] + 1/2 * ys[j] * v[i,j] - DCD(p[i-2:i+2,j],Δx)
+            dx[2,i,j] = - ϵ_v * v[i,j] - 1/2 * ys[j] * u[i,j] - DCD(p[i,j-2:j+2],Δy)
+            dx[3,i,j] = - ϵ_p * p[i,j] - DCD(u[i-2:i+2,j],Δx) - DCD(v[i,j-2:j+2],Δy) + Q[i,j]
+        end
+    end
+end
 
 function WTG!(dx::Array, x::Array, constants)
     # according to Bretherton and Sobel 2003
